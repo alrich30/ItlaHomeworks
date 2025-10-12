@@ -1,0 +1,19 @@
+button {
+    border-radius: 15px;
+}
+h1 {
+    color: blue;
+    text-align: center;
+}
+button {
+    background-color: lightgray;
+    border-radius: 15px;
+    cursor: pointer;
+}
+#caja {
+    border: 2px solid black;
+    height: 200px;
+    width: 200px;
+    overflow: auto;
+    margin-top: 20px;
+}
