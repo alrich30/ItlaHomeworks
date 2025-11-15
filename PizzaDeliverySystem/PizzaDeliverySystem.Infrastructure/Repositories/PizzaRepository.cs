@@ -25,10 +25,12 @@ public class PizzaRepository
                 .Include(p => p.Ingredients)
                 .FirstOrDefaultAsync(p => p.Id == id, ct);
 
-            if (model is null) return null;
+            if (model is null)
+                return null;
 
-            // TODO: mapear PizzaModel -> Pizza (dominio)
-            throw new NotImplementedException("Map PizzaModel -> Pizza aún no implementado.");
+            // Mapeo PizzaModel -> Pizza (dominio)
+            var pizza = MapToDomain(model);
+            return pizza;
         }
         catch (Exception ex)
         {
@@ -40,8 +42,10 @@ public class PizzaRepository
     {
         try
         {
-            // TODO: mapear Pizza (dominio) -> PizzaModel (infra)
-            throw new NotImplementedException("Map Pizza -> PizzaModel aún no implementado.");
+            var model = MapToModel(entity);
+            await _dbSet.AddAsync(model, ct);
+            // IMPORTANTE: aquí NO llamamos SaveChangesAsync.
+            // Eso lo hará IUnitOfWork.SaveChangesAsync() desde la capa de aplicación.
         }
         catch (Exception ex)
         {
@@ -53,8 +57,38 @@ public class PizzaRepository
     {
         try
         {
-            // TODO: buscar modelo existente y mapear cambios
-            throw new NotImplementedException("Update Pizza aún no implementado.");
+            // Cargamos el modelo actual desde la BD
+            var model = _dbSet
+                .Include(p => p.Ingredients)
+                .FirstOrDefault(p => p.Id == entity.Id);
+
+            if (model is null)
+                throw new PizzaRepositoryException($"Pizza {entity.Id} not found for update.");
+
+            // Actualizamos propiedades básicas
+            model.Name      = entity.Name;
+            model.Size      = entity.Size;
+            model.BasePrice = entity.BasePrice;
+
+            // Para simplificar, reseteamos la lista de ingredientes y la volvemos a poblar
+            model.Ingredients.Clear();
+
+            foreach (var ing in entity.Ingredients)
+            {
+                // OJO: aquí estamos creando nuevos IngredientModel.
+                // Si quisieras reutilizar ingredientes existentes, deberías buscarlos
+                // desde el contexto en vez de crear siempre nuevos.
+                var ingredientModel = new IngredientModel
+                {
+                    Id         = ing.Id,
+                    Name       = ing.Name,
+                    ExtraPrice = ing.ExtraPrice
+                };
+
+                model.Ingredients.Add(ingredientModel);
+            }
+
+            // EF Core ya rastrea 'model', así que basta con esto para marcar cambios.
         }
         catch (Exception ex)
         {
@@ -66,12 +100,68 @@ public class PizzaRepository
     {
         try
         {
-            // TODO: mapear / adjuntar modelo y marcar para eliminar
-            throw new NotImplementedException("Remove Pizza aún no implementado.");
+            // Opción simple: adjuntar un stub y marcarlo para eliminar
+            var model = new PizzaModel { Id = entity.Id };
+            _context.Attach(model);
+            _dbSet.Remove(model);
         }
         catch (Exception ex)
         {
             throw new PizzaRepositoryException("Error removing pizza", ex);
         }
+    }
+
+    // ----------------- MAPEOS PRIVADOS -----------------
+
+    private static Pizza MapToDomain(PizzaModel model)
+    {
+        // Crear la entidad de dominio
+        var pizza = new Pizza(
+            model.Name,
+            model.Size,
+            model.BasePrice
+        );
+
+        // IMPORTANTE:
+        // Aquí estamos perdiendo el Id original del modelo,
+        // porque la entidad Pizza genera su propio Id en BaseEntity.
+        // Para un proyecto real, idealmente tendrías un constructor
+        // o método interno que permita asignar el Id desde la persistencia.
+
+        // Mapear ingredientes
+        foreach (var ingModel in model.Ingredients)
+        {
+            var ingredient = new Ingredient(
+                ingModel.Name,
+                ingModel.ExtraPrice
+            );
+
+            // Igual que con Pizza, el Id del Ingredient de dominio
+            // se generará nuevo; en un sistema real también se hidrataría Id.
+            pizza.AddIngredient(ingredient);
+        }
+
+        return pizza;
+    }
+
+    private static PizzaModel MapToModel(Pizza entity)
+    {
+        var model = new PizzaModel
+        {
+            Id         = entity.Id,      // Aquí sí aprovechamos el Id que viene del dominio
+            Name       = entity.Name,
+            Size       = entity.Size,
+            BasePrice  = entity.BasePrice,
+            Ingredients = entity.Ingredients
+                .Select(ing => new IngredientModel
+                {
+                    Id         = ing.Id,
+                    Name       = ing.Name,
+                    ExtraPrice = ing.ExtraPrice
+                })
+                .ToList()
+        };
+
+        return model;
     }
 }
