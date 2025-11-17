@@ -1,0 +1,9 @@
+﻿namespace PizzaDeliverySystem.Application.Dtos;
+
+public class CreatePizzaRequest
+{
+    public string Name { get; set; } = string.Empty;
+    public string Size { get; set; } = string.Empty;
+    public decimal BasePrice { get; set; }
+    public List<IngredientDto> Ingredients { get; set; } = new();
+}
