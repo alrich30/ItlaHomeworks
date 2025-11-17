@@ -1,10 +1,10 @@
-﻿using PizzaDeliverySystem.Domain.Core.Repository;
-using PizzaDeliverySystem.Domain.Entities;
+﻿//using PizzaDeliverySystem.Domain.Core.Repository;
+//using PizzaDeliverySystem.Domain.Entities;
 
-namespace PizzaDeliverySystem.Infrastructure.Interfaces;
+//namespace PizzaDeliverySystem.Infrastructure.Interfaces;
 
-public interface IPizzaRepository : IRepository<Pizza>
-{
+//public interface IPizzaRepository : IRepository<Pizza>
+//{
     // Aquí podrías añadir métodos específicos, por ejemplo:
     // Task<IReadOnlyList<Pizza>> GetBySizeAsync(string size, CancellationToken ct = default);
-}
+//}

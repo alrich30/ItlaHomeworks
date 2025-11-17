@@ -1,14 +1,15 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PizzaDeliverySystem.Domain.Core;
-using PizzaDeliverySystem.Domain.Core.Errors;
 using PizzaDeliverySystem.Domain.Core.Repository;
+using PizzaDeliverySystem.Domain.Entities;
 using PizzaDeliverySystem.Infrastructure.Context;
+using PizzaDeliverySystem.Infrastructure.Models;
 
-namespace PizzaDeliverySystem.Infrastructure.Core;
+namespace PizzaDeliverySystem.Infrastructure.Repositories;
 
-public abstract class BaseRepository<TModel, TAggregate> : IRepository<TAggregate>
+public abstract class BaseRepository<TModel, TEntity> : IRepository<TEntity>
     where TModel : class
-    where TAggregate : BaseEntity, IAggregateRoot
+    where TEntity : BaseEntity, IAggregateRoot
 {
     protected readonly PizzaDbContext _context;
     protected readonly DbSet<TModel> _dbSet;
@@ -16,21 +17,30 @@ public abstract class BaseRepository<TModel, TAggregate> : IRepository<TAggregat
     protected BaseRepository(PizzaDbContext context)
     {
         _context = context;
-        _dbSet = _context.Set<TModel>();
+        _dbSet = context.Set<TModel>();
     }
 
-    // ------------- Contrato IRepository<TAggregate> -------------
+    public virtual async Task<TEntity?> GetByIdAsync(Guid id, CancellationToken ct = default)
+    {
+        var model = await _dbSet.FindAsync(new object?[] { id }, ct);
+        return model is null ? null : MapToDomain(model);
+    }
 
-    public abstract Task<TAggregate?> GetByIdAsync(Guid id, CancellationToken ct = default);
+    public virtual async Task AddAsync(TEntity entity, CancellationToken ct = default)
+    {
+        var model = MapToModel(entity);
+        await _dbSet.AddAsync(model, ct);
+    }
 
-    public abstract Task AddAsync(TAggregate entity, CancellationToken ct = default);
+    public virtual void Remove(TEntity entity)
+    {
+        var model = MapToModel(entity);
+        _dbSet.Remove(model);
+    }
 
-    public abstract void Update(TAggregate entity);
+    public abstract void Update(TEntity entity);
 
-    public abstract void Remove(TAggregate entity);
-
-    // ------------- Helper para errores de mapeo -------------
-
-    protected DomainException MappingError(string message)
-        => new DomainException($"Mapping error in {GetType().Name}: {message}");
+    // Métodos que cada repositorio concreto implementará
+    protected abstract TEntity MapToDomain(TModel model);
+    protected abstract TModel MapToModel(TEntity entity);
 }

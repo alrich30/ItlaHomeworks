@@ -1,14 +1,13 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PizzaDeliverySystem.Domain.Entities;
+using PizzaDeliverySystem.Domain.Core.Repository;
 using PizzaDeliverySystem.Infrastructure.Context;
-using PizzaDeliverySystem.Infrastructure.Core;
-using PizzaDeliverySystem.Infrastructure.Interfaces;
+using PizzaDeliverySystem.Infrastructure.Exceptions;
 using PizzaDeliverySystem.Infrastructure.Models;
 
 namespace PizzaDeliverySystem.Infrastructure.Repositories;
 
-public class CustomerRepository
-    : BaseRepository<CustomerModel, Customer>, ICustomerRepository
+public class CustomerRepository : BaseRepository<CustomerModel, Customer>, ICustomerRepository
 {
     public CustomerRepository(PizzaDbContext context) : base(context)
     {
@@ -18,23 +17,15 @@ public class CustomerRepository
     {
         try
         {
-            // Si quieres incluir pedidos del cliente:
-            // var model = await _dbSet
-            //     .Include(c => c.Orders)
-            //     .FirstOrDefaultAsync(c => c.Id == id, ct);
+            var model = await _dbSet
+                .Include(c => c.Orders)
+                .FirstOrDefaultAsync(c => c.Id == id, ct);
 
-            var model = await _dbSet.FirstOrDefaultAsync(c => c.Id == id, ct);
-
-            if (model is null)
-                return null;
-
-            var customer = MapToDomain(model);
-            return customer;
+            return model is null ? null : MapToDomain(model);
         }
         catch (Exception ex)
         {
-            // Aquí podrías crear una CustomerRepositoryException si quisieras
-            throw new Exception($"Error getting customer {id}", ex);
+            throw new CustomerRepositoryException($"Error getting customer {id}", ex);
         }
     }
 
@@ -44,11 +35,10 @@ public class CustomerRepository
         {
             var model = MapToModel(entity);
             await _dbSet.AddAsync(model, ct);
-            // SaveChangesAsync lo hará IUnitOfWork desde la capa de aplicación.
         }
         catch (Exception ex)
         {
-            throw new Exception("Error adding customer", ex);
+            throw new CustomerRepositoryException("Error adding customer", ex);
         }
     }
 
@@ -58,18 +48,19 @@ public class CustomerRepository
         {
             var model = _dbSet.FirstOrDefault(c => c.Id == entity.Id);
             if (model is null)
-                throw new Exception($"Customer {entity.Id} not found for update.");
+                throw new CustomerRepositoryException($"Customer {entity.Id} not found.");
 
             model.FullName = entity.FullName;
             model.Phone = entity.Phone;
             model.Street = entity.Street;
             model.City = entity.City;
             model.PostalCode = entity.PostalCode;
-            // EF Core rastrea el modelo, no hace falta más aquí.
+
+            // Si quisieras actualizar órdenes también, se haría aquí.
         }
         catch (Exception ex)
         {
-            throw new Exception("Error updating customer", ex);
+            throw new CustomerRepositoryException("Error updating customer", ex);
         }
     }
 
@@ -77,22 +68,17 @@ public class CustomerRepository
     {
         try
         {
-            var model = new CustomerModel { Id = entity.Id };
-            _context.Attach(model);
+            var model = MapToModel(entity);
             _dbSet.Remove(model);
         }
         catch (Exception ex)
         {
-            throw new Exception("Error removing customer", ex);
+            throw new CustomerRepositoryException("Error removing customer", ex);
         }
     }
 
-    // ------------- Mapping helpers -------------
-
-    private static Customer MapToDomain(CustomerModel model)
+    protected override Customer MapToDomain(CustomerModel model)
     {
-        // Asumiendo un constructor:
-        // Customer(string fullName, string phone, string street, string city, string postalCode)
         var customer = new Customer(
             model.FullName,
             model.Phone,
@@ -101,14 +87,12 @@ public class CustomerRepository
             model.PostalCode
         );
 
-        // Igual que con Pizza: el Id de la BD no se está rehidratando
-        // porque tu BaseEntity genera Id automáticamente.
-        // Si quisieras, se puede mejorar el modelo de dominio más adelante.
+        // Igual que antes, en un sistema real hidrataríamos Ids y Orders.
 
         return customer;
     }
 
-    private static CustomerModel MapToModel(Customer entity)
+    protected override CustomerModel MapToModel(Customer entity)
     {
         return new CustomerModel
         {

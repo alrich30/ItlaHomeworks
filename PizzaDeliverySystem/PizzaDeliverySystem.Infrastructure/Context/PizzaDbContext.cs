@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Reflection.Emit;
 using Microsoft.EntityFrameworkCore;
-using PizzaDeliverySystem.Domain.Repository;
+using PizzaDeliverySystem.Domain.Core.Repository;
 using PizzaDeliverySystem.Infrastructure.Models;
 
 namespace PizzaDeliverySystem.Infrastructure.Context;

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PizzaDeliverySystem.Domain.Repository
+namespace PizzaDeliverySystem.Domain.Core.Repository
 {
     public interface IUnitOfWork
     {

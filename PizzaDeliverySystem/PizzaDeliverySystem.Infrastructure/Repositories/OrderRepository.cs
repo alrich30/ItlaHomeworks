@@ -1,16 +1,13 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using PizzaDeliverySystem.Domain.Core.Errors;
 using PizzaDeliverySystem.Domain.Entities;
+using PizzaDeliverySystem.Domain.Core.Repository;
 using PizzaDeliverySystem.Infrastructure.Context;
-using PizzaDeliverySystem.Infrastructure.Core;
 using PizzaDeliverySystem.Infrastructure.Exceptions;
-using PizzaDeliverySystem.Infrastructure.Interfaces;
 using PizzaDeliverySystem.Infrastructure.Models;
 
 namespace PizzaDeliverySystem.Infrastructure.Repositories;
 
-public class OrderRepository
-    : BaseRepository<OrderModel, Order>, IOrderRepository
+public class OrderRepository : BaseRepository<OrderModel, Order>, IOrderRepository
 {
     public OrderRepository(PizzaDbContext context) : base(context)
     {
@@ -22,14 +19,9 @@ public class OrderRepository
         {
             var model = await _dbSet
                 .Include(o => o.Items)
-                .Include(o => o.Customer)
                 .FirstOrDefaultAsync(o => o.Id == id, ct);
 
-            if (model is null)
-                return null;
-
-            var order = MapToDomain(model);
-            return order;
+            return model is null ? null : MapToDomain(model);
         }
         catch (Exception ex)
         {
@@ -43,7 +35,6 @@ public class OrderRepository
         {
             var model = MapToModel(entity);
             await _dbSet.AddAsync(model, ct);
-            // SaveChangesAsync lo hará IUnitOfWork.
         }
         catch (Exception ex)
         {
@@ -60,16 +51,15 @@ public class OrderRepository
                 .FirstOrDefault(o => o.Id == entity.Id);
 
             if (model is null)
-                throw new OrderRepositoryException($"Order {entity.Id} not found for update.");
+                throw new OrderRepositoryException($"Order {entity.Id} not found.");
 
-            // Actualizar datos básicos
             model.CustomerId = entity.CustomerId;
             model.Status = entity.Status;
             model.Street = entity.Street;
             model.City = entity.City;
             model.PostalCode = entity.PostalCode;
 
-            // Reseteamos items y los volvemos a poblar según el dominio
+            // Actualizar items: estrategia simple = borrar y recrear
             model.Items.Clear();
 
             foreach (var item in entity.Items)
@@ -77,7 +67,7 @@ public class OrderRepository
                 var itemModel = new OrderItemModel
                 {
                     Id = item.Id,
-                    OrderId = entity.Id,
+                    OrderId = model.Id,
                     PizzaId = item.PizzaId,
                     PizzaName = item.PizzaName,
                     Quantity = item.Quantity,
@@ -97,8 +87,7 @@ public class OrderRepository
     {
         try
         {
-            var model = new OrderModel { Id = entity.Id };
-            _context.Attach(model);
+            var model = MapToModel(entity);
             _dbSet.Remove(model);
         }
         catch (Exception ex)
@@ -107,80 +96,21 @@ public class OrderRepository
         }
     }
 
-    // ------------- Mapping helpers -------------
-
-    private static Order MapToDomain(OrderModel model)
+    // ---------------- Mapeos ----------------
+    protected override Order MapToDomain(OrderModel model)
     {
-        // Asumiendo constructor:
-        // Order(Guid customerId, string street, string city, string postalCode)
-
         var order = new Order(
-            model.CustomerId,
-            model.Street,
-            model.City,
-            model.PostalCode
+            model.CustomerId,model.Street, model.City, model.PostalCode // o tu versión aplanada
         );
 
-        // Primero mapear items mientras el estado sigue en "Created"
-        foreach (var itemModel in model.Items)
-        {
-            var item = new OrderItem(
-                itemModel.PizzaId,
-                itemModel.PizzaName,
-                itemModel.Quantity,
-                itemModel.UnitPrice
-            );
-
-            order.AddItem(item);
-        }
-
-        // Luego ajustar el estado según el Status almacenado
-        // Aquí asumiré los estados posibles como strings:
-        // "Created", "Confirmed", "InKitchen", "OutForDelivery", "Delivered", "Cancelled"
-
-        switch (model.Status)
-        {
-            case "Created":
-                // nada que hacer, ya está creado así
-                break;
-
-            case "Confirmed":
-                order.Confirm();
-                break;
-
-            case "InKitchen":
-                order.Confirm();
-                order.StartKitchen();
-                break;
-
-            case "OutForDelivery":
-                order.Confirm();
-                order.StartKitchen();
-                order.StartDelivery();
-                break;
-
-            case "Delivered":
-                order.Confirm();
-                order.StartKitchen();
-                order.StartDelivery();
-                order.Deliver();
-                break;
-
-            case "Cancelled":
-                // No sabemos la razón real, puedes usar un texto genérico
-                order.Cancel("Loaded from persistence.");
-                break;
-
-            default:
-                throw new DomainException($"Unknown order status '{model.Status}' when mapping from database.");
-        }
+        // similar tema de Id / items aquí, según tu diseño de Order.
 
         return order;
     }
 
-    private static OrderModel MapToModel(Order entity)
+    protected override OrderModel MapToModel(Order entity)
     {
-        var model = new OrderModel
+        return new OrderModel
         {
             Id = entity.Id,
             CustomerId = entity.CustomerId,
@@ -189,18 +119,16 @@ public class OrderRepository
             City = entity.City,
             PostalCode = entity.PostalCode,
             Items = entity.Items
-                .Select(item => new OrderItemModel
+                .Select(i => new OrderItemModel
                 {
-                    Id = item.Id,
+                    Id = i.Id,
                     OrderId = entity.Id,
-                    PizzaId = item.PizzaId,
-                    PizzaName = item.PizzaName,
-                    Quantity = item.Quantity,
-                    UnitPrice = item.UnitPrice
+                    PizzaId = i.PizzaId,
+                    PizzaName = i.PizzaName,
+                    Quantity = i.Quantity,
+                    UnitPrice = i.UnitPrice
                 })
                 .ToList()
         };
-
-        return model;
     }
 }

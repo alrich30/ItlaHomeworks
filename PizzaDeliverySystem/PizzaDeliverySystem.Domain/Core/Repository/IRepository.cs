@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using PizzaDeliverySystem.Domain.Core;
 
-namespace PizzaDeliverySystem.Domain.Repository
+namespace PizzaDeliverySystem.Domain.Core.Repository
 {
     public interface IRepository<T> where T : IAggregateRoot
     {
