@@ -19,6 +19,7 @@ public class PizzaRepository : BaseRepository<PizzaModel, Pizza>, IPizzaReposito
         try
         {
             var model = await _dbSet
+                .AsNoTracking()
                 .Include(p => p.Ingredients)
                 .FirstOrDefaultAsync(p => p.Id == id, ct);
 
@@ -90,7 +91,11 @@ public class PizzaRepository : BaseRepository<PizzaModel, Pizza>, IPizzaReposito
     {
         try
         {
-            var model = MapToModel(entity);
+            // Creamos un stub con solo el Id
+            var model = new PizzaModel { Id = entity.Id };
+
+            // Lo adjuntamos y marcamos para eliminación
+            _dbSet.Attach(model);
             _dbSet.Remove(model);
         }
         catch (Exception ex)
@@ -98,6 +103,7 @@ public class PizzaRepository : BaseRepository<PizzaModel, Pizza>, IPizzaReposito
             throw new PizzaRepositoryException("Error removing pizza", ex);
         }
     }
+
 
     // ---------------- Mapeos ----------------
     protected override Pizza MapToDomain(PizzaModel model)
