@@ -16,8 +16,17 @@ public class Ingredient : BaseEntity
 
     public Ingredient(string name, decimal extraPrice)
     {
+        Id = Guid.NewGuid();
         SetName(name);
         SetExtraPrice(extraPrice);
+    }
+
+    // Hidratar ingrediente existente desde la BD
+    internal Ingredient(Guid id, string name, decimal extraPrice)
+    {
+        Id = id;
+        Name = name;
+        ExtraPrice = extraPrice;
     }
 
     public void SetName(string name)

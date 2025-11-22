@@ -102,15 +102,13 @@ public class PizzaRepository : BaseRepository<PizzaModel, Pizza>, IPizzaReposito
     // ---------------- Mapeos ----------------
     protected override Pizza MapToDomain(PizzaModel model)
     {
-        var pizza = new Pizza(model.Name, model.Size, model.BasePrice);
-
-        // Idealmente hidrataríamos Id desde la DB:
-        // pizza.SetIdInterno(model.Id); // si existiera un método interno
+        // Hidratas la Pizza con el Id real de la BD
+        var pizza = new Pizza(model.Id, model.Name, model.Size, model.BasePrice);
 
         foreach (var ingModel in model.Ingredients)
         {
-            var ingredient = new Ingredient(ingModel.Name, ingModel.ExtraPrice);
-            // también aquí se podría hidratar el Id
+            // Hidratas cada ingrediente con su Id real
+            var ingredient = new Ingredient(ingModel.Id, ingModel.Name, ingModel.ExtraPrice);
             pizza.AddIngredient(ingredient);
         }
 
