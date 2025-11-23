@@ -18,6 +18,7 @@ public class OrderRepository : BaseRepository<OrderModel, Order>, IOrderReposito
         try
         {
             var model = await _dbSet
+                .AsNoTracking()
                 .Include(o => o.Items)
                 .FirstOrDefaultAsync(o => o.Id == id, ct);
 
@@ -87,7 +88,9 @@ public class OrderRepository : BaseRepository<OrderModel, Order>, IOrderReposito
     {
         try
         {
-            var model = MapToModel(entity);
+            //var model = MapToModel(entity);
+            var model = new OrderModel { Id = entity.Id };
+            //_dbSet.Attach(model);  Redundante debido a que ya hemos trackeado el modelo con .FirstOrDefaultAsync(p => p.Id == id, ct);
             _dbSet.Remove(model);
         }
         catch (Exception ex)
@@ -99,11 +102,13 @@ public class OrderRepository : BaseRepository<OrderModel, Order>, IOrderReposito
     // ---------------- Mapeos ----------------
     protected override Order MapToDomain(OrderModel model)
     {
-        var order = new Order(
-            model.CustomerId,model.Street, model.City, model.PostalCode // o tu versión aplanada
-        );
+        var order = new Order(model.Id,model.CustomerId,model.Street, model.City, model.PostalCode);
 
-        // similar tema de Id / items aquí, según tu diseño de Order.
+        foreach (var itemModel in model.Items)
+        {
+            var orderItem = new OrderItem(itemModel.PizzaId, itemModel.PizzaName, itemModel.Quantity, itemModel.UnitPrice);
+            order.AddItem(orderItem);
+        }
 
         return order;
     }

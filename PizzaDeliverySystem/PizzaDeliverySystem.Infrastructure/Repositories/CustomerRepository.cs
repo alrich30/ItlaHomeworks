@@ -18,6 +18,7 @@ public class CustomerRepository : BaseRepository<CustomerModel, Customer>, ICust
         try
         {
             var model = await _dbSet
+                .AsNoTracking()
                 .Include(c => c.Orders)
                 .FirstOrDefaultAsync(c => c.Id == id, ct);
 
@@ -68,7 +69,8 @@ public class CustomerRepository : BaseRepository<CustomerModel, Customer>, ICust
     {
         try
         {
-            var model = MapToModel(entity);
+            var model = new CustomerModel { Id = entity.Id };
+            //_dbSet.Attach(model);  Redundante debido a que ya hemos trackeado el modelo con .FirstOrDefaultAsync(p => p.Id == id, ct);
             _dbSet.Remove(model);
         }
         catch (Exception ex)
@@ -80,6 +82,7 @@ public class CustomerRepository : BaseRepository<CustomerModel, Customer>, ICust
     protected override Customer MapToDomain(CustomerModel model)
     {
         var customer = new Customer(
+            model.Id,
             model.FullName,
             model.Phone,
             model.Street,

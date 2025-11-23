@@ -19,11 +19,21 @@ namespace PizzaDeliverySystem.Domain.Entities
 
         public OrderItem(Guid pizzaId, string pizzaName, int quantity, decimal unitPrice)
         {
+            Id = Guid.NewGuid();
             SetPizzaId(pizzaId);
             SetPizzaName(pizzaName);
             SetUnitPrice(unitPrice);
             ChangeQuantity(quantity);
         }
+        internal OrderItem(Guid id, Guid pizzaId, string pizzaName, int quantity, decimal unitPrice)
+        {
+            Id = id;
+            SetPizzaId(pizzaId);
+            SetPizzaName(pizzaName);
+            SetUnitPrice(unitPrice);
+            ChangeQuantity(quantity);
+        }
+
 
         private void SetPizzaId(Guid pizzaId)
         {

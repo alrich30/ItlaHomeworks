@@ -29,6 +29,15 @@ namespace PizzaDeliverySystem.Domain.Entities
 
         public Order(Guid customerId, string street, string city, string postalCode)
         {
+            Id = Guid.NewGuid();
+            SetCustomer(customerId);
+            SetAddress(street, city, postalCode);
+            // Status starts as "Created"
+        }
+
+        internal Order(Guid id, Guid customerId, string street, string city, string postalCode)
+        {
+            Id = id;
             SetCustomer(customerId);
             SetAddress(street, city, postalCode);
             // Status starts as "Created"

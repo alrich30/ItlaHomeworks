@@ -95,7 +95,7 @@ public class PizzaRepository : BaseRepository<PizzaModel, Pizza>, IPizzaReposito
             var model = new PizzaModel { Id = entity.Id };
 
             // Lo adjuntamos y marcamos para eliminación
-            _dbSet.Attach(model);
+            //_dbSet.Attach(model);  Redundante debido a que ya hemos trackeado el modelo con .FirstOrDefaultAsync(p => p.Id == id, ct);
             _dbSet.Remove(model);
         }
         catch (Exception ex)
