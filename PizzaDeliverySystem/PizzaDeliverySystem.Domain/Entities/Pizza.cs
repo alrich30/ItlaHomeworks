@@ -21,8 +21,21 @@ namespace PizzaDeliverySystem.Domain.Entities
         private static readonly HashSet<string> AllowedSizes = new(StringComparer.OrdinalIgnoreCase)
     { "Small", "Medium", "Large" };
 
+
+        // 👉 Constructor público: CREACIÓN de una nueva pizza (POST)
         public Pizza(string name, string size, decimal basePrice)
         {
+            Id = Guid.NewGuid();         // aquí sí generamos el Guid             
+            SetName(name);                   
+            SetSize(size);
+            SetBasePrice(basePrice);
+
+        }
+
+        // 👉 Constructor interno: HIDRATACIÓN desde la base de datos
+        internal Pizza(Guid id, string name, string size, decimal basePrice)
+        {
+            Id = id;                            // usamos el Id que viene de la BD
             SetName(name);
             SetSize(size);
             SetBasePrice(basePrice);

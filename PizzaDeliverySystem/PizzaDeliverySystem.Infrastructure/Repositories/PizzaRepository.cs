@@ -19,6 +19,7 @@ public class PizzaRepository : BaseRepository<PizzaModel, Pizza>, IPizzaReposito
         try
         {
             var model = await _dbSet
+                .AsNoTracking()
                 .Include(p => p.Ingredients)
                 .FirstOrDefaultAsync(p => p.Id == id, ct);
 
@@ -90,7 +91,11 @@ public class PizzaRepository : BaseRepository<PizzaModel, Pizza>, IPizzaReposito
     {
         try
         {
-            var model = MapToModel(entity);
+            // Creamos un stub con solo el Id
+            var model = new PizzaModel { Id = entity.Id };
+
+            // Lo adjuntamos y marcamos para eliminación
+            //_dbSet.Attach(model);  Redundante debido a que ya hemos trackeado el modelo con .FirstOrDefaultAsync(p => p.Id == id, ct);
             _dbSet.Remove(model);
         }
         catch (Exception ex)
@@ -99,18 +104,17 @@ public class PizzaRepository : BaseRepository<PizzaModel, Pizza>, IPizzaReposito
         }
     }
 
+
     // ---------------- Mapeos ----------------
     protected override Pizza MapToDomain(PizzaModel model)
     {
-        var pizza = new Pizza(model.Name, model.Size, model.BasePrice);
-
-        // Idealmente hidrataríamos Id desde la DB:
-        // pizza.SetIdInterno(model.Id); // si existiera un método interno
+        // Hidratas la Pizza con el Id real de la BD
+        var pizza = new Pizza(model.Id, model.Name, model.Size, model.BasePrice);
 
         foreach (var ingModel in model.Ingredients)
         {
-            var ingredient = new Ingredient(ingModel.Name, ingModel.ExtraPrice);
-            // también aquí se podría hidratar el Id
+            // Hidratas cada ingrediente con su Id real
+            var ingredient = new Ingredient(ingModel.Id, ingModel.Name, ingModel.ExtraPrice);
             pizza.AddIngredient(ingredient);
         }
 

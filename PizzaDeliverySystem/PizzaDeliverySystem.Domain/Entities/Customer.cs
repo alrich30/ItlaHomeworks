@@ -20,6 +20,14 @@ namespace PizzaDeliverySystem.Domain.Entities
 
         public Customer(string fullName, string phone, string street, string city, string postalCode)
         {
+            Id = Guid.NewGuid();
+            SetFullName(fullName);
+            SetPhone(phone);
+            SetAddress(street, city, postalCode);
+        }
+        internal Customer(Guid id, string fullName, string phone, string street, string city, string postalCode)
+        {
+            Id = id;
             SetFullName(fullName);
             SetPhone(phone);
             SetAddress(street, city, postalCode);
