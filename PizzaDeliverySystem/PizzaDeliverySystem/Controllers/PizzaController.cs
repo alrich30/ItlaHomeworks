@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using PizzaDeliverySystem.Application.Contract;
-using PizzaDeliverySystem.Application.Dtos.Pizza;
+using PizzaDeliverySystem.Application.Dtos;
 
 namespace PizzaDeliverySystem.Controllers;
 
@@ -16,14 +16,6 @@ public class PizzaController : ControllerBase
     public PizzaController(IPizzaService pizzaService)
     {
         _pizzaService = pizzaService;
-    }
-
-    // GET: api/pizza
-    [HttpGet]
-    public async Task<ActionResult<IEnumerable<PizzaDto>>> GetAll(CancellationToken ct)
-    {
-        var pizzas = await _pizzaService.GetAllAsync(ct);
-        return Ok(pizzas);
     }
 
     // GET: api/pizza/{id}
@@ -56,23 +48,29 @@ public class PizzaController : ControllerBase
 
     // PUT: api/pizza/{id}
     [HttpPut("{id:guid}")]
-    public async Task<ActionResult<PizzaDto>> Update(
-        Guid id,
-        [FromBody] UpdatePizzaRequest request,
-        CancellationToken ct)
+    public async Task<ActionResult<PizzaDto>> Update(Guid id, [FromBody] UpdatePizzaRequest request, CancellationToken ct)
     {
-        //if (id != request.Id)
-            //return BadRequest("Route id and body id must match.");
+        if (id != request.Id)
+            return BadRequest("Route id and body id must match.");
 
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        // 👈 aquí el cambio importante
-        var updated = await _pizzaService.UpdateAsync(id, request, ct);
-
+        var updated = await _pizzaService.UpdateAsync(request, ct);
         if (updated is null)
             return NotFound();
 
         return Ok(updated);
+    }
+
+    // DELETE: api/pizza/{id}
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
+    {
+        var deleted = await _pizzaService.DeleteAsync(id, ct);
+        if (!deleted)
+            return NotFound();
+
+        return NoContent();
     }
 }

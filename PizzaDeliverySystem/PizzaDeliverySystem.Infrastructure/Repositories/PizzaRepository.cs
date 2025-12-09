@@ -63,32 +63,18 @@ public class PizzaRepository : BaseRepository<PizzaModel, Pizza>, IPizzaReposito
             model.Size = entity.Size;
             model.BasePrice = entity.BasePrice;
 
-            // Sincronizar ingredientes (muchos-a-muchos)
-            model.Ingredients.Clear(); // borra relaciones en tabla intermedia
-
             // Resetear ingredientes y volver a poblar
-            //model.Ingredients.Clear();
+            model.Ingredients.Clear();
 
-            //foreach (var ing in entity.Ingredients)
-            //{
-            //var ingModel = new IngredientModel
-            //{
-            //Id = ing.Id,
-            //Name = ing.Name,
-            //ExtraPrice = ing.ExtraPrice
-            //};
-
-            //model.Ingredients.Add(ingModel);
-            //}
-
-            foreach (var ingredient in entity.Ingredients)
+            foreach (var ing in entity.Ingredients)
             {
-                // OJO: no crear nuevos, sino attach de existentes
-                var ingModel = _context.Ingredients.Local
-                                  .FirstOrDefault(i => i.Id == ingredient.Id)
-                              ?? new IngredientModel { Id = ingredient.Id };
+                var ingModel = new IngredientModel
+                {
+                    Id = ing.Id,
+                    Name = ing.Name,
+                    ExtraPrice = ing.ExtraPrice
+                };
 
-                _context.Attach(ingModel);   // aseguramos que EF sabe que existe
                 model.Ingredients.Add(ingModel);
             }
 

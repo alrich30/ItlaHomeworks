@@ -26,12 +26,6 @@ public abstract class BaseRepository<TModel, TEntity> : IRepository<TEntity>
         return model is null ? null : MapToDomain(model);
     }
 
-    public virtual async Task<List<TEntity>> GetAllAsync(CancellationToken ct = default)
-    {
-        var models = await _dbSet.AsNoTracking().ToListAsync(ct);
-        return models.Select(MapToDomain).ToList();
-    }
-
     public virtual async Task AddAsync(TEntity entity, CancellationToken ct = default)
     {
         var model = MapToModel(entity);
