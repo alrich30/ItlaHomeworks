@@ -48,13 +48,10 @@ public class OrderController : ControllerBase
 
     // PUT: api/order/{id}/status
     [HttpPut("{id:guid}/status")]
-    public async Task<ActionResult<OrderDto>> ChangeStatus(Guid id, [FromBody] UpdateOrderStatusRequest request, CancellationToken ct)
+    public async Task<ActionResult<OrderDto>> ChangeStatus([FromBody] UpdateOrderStatusRequest request, CancellationToken ct)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
-
-        // Aseguramos que el Id del body coincida con la ruta
-        request.Id = id;
 
         var updated = await _orderService.ChangeStatusAsync(request, ct);
         if (updated is null)

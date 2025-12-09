@@ -15,6 +15,8 @@ namespace PizzaDeliverySystem.Domain.Entities
         public Guid CustomerId { get; private set; }
         public string Status { get; private set; } = "Created";
 
+        public string? StatusReason { get; private set; }
+
         // Address flattened (no ValueObject)
         public string Street { get; private set; } = string.Empty;
         public string City { get; private set; } = string.Empty;
@@ -84,6 +86,7 @@ namespace PizzaDeliverySystem.Domain.Entities
 
             EnsureStatus("Created");
             Status = "Confirmed";
+            StatusReason = null;
             Touch();
         }
 
@@ -113,10 +116,11 @@ namespace PizzaDeliverySystem.Domain.Entities
             if (Status.Equals("Delivered", StringComparison.OrdinalIgnoreCase))
                 throw new DomainException("Delivered orders cannot be cancelled.");
 
-            // (reason can be stored/logged later if needed)
             Status = "Cancelled";
-            Touch();
+            StatusReason = reason;
+            Touch(); // si Touch() ya pone UpdatedAt, se queda igual
         }
+
 
         private bool IsModifiable() =>
             Status.Equals("Created", StringComparison.OrdinalIgnoreCase) ||
@@ -129,11 +133,13 @@ namespace PizzaDeliverySystem.Domain.Entities
         }
 
         // Optional: generic setter if you necesitas validar un status externo
-        public void SetStatus(string status)
+        public void SetStatus(string status, string? reason)
         {
             if (!AllowedStatuses.Contains(status))
                 throw new DomainException("Invalid status.");
             Status = status;
+            StatusReason = reason;
+            UpdatedAtUtc = DateTime.UtcNow;
             Touch();
         }
     }

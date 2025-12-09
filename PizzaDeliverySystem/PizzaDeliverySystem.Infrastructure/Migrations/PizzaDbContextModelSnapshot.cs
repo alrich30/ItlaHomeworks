@@ -133,6 +133,9 @@ namespace PizzaDeliverySystem.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
+                    b.Property<string>("StatusReason")
+                        .HasColumnType("longtext");
+
                     b.Property<string>("Street")
                         .IsRequired()
                         .HasColumnType("longtext");
@@ -164,6 +167,35 @@ namespace PizzaDeliverySystem.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Pizzas");
+                });
+
+            modelBuilder.Entity("PizzaDeliverySystem.Infrastructure.Models.UserModel", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("IngredientModelPizzaModel", b =>

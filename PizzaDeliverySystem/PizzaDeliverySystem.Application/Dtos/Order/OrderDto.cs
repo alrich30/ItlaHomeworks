@@ -7,6 +7,8 @@ public class OrderDto
 
     public string Status { get; set; } = string.Empty;
 
+    public string? StatusReason { get; set; }
+
     // Flattened delivery address
     public string Street { get; set; } = string.Empty;
     public string City { get; set; } = string.Empty;

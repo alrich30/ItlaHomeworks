@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace PizzaDeliverySystem.Application.Dtos;
+namespace PizzaDeliverySystem.Application.Dtos.Order;
 
 public class UpdateOrderStatusRequest
 {

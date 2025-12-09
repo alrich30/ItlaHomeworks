@@ -45,44 +45,19 @@ public class OrderRepository : BaseRepository<OrderModel, Order>, IOrderReposito
 
     public override void Update(Order entity)
     {
-        try
-        {
-            var model = _dbSet
-                .Include(o => o.Items)
-                .FirstOrDefault(o => o.Id == entity.Id);
+        // Cargar la orden desde el DbContext
+        var model = _dbSet.FirstOrDefault(o => o.Id == entity.Id);
+        if (model is null)
+            throw new OrderRepositoryException($"Order {entity.Id} not found.");
 
-            if (model is null)
-                throw new OrderRepositoryException($"Order {entity.Id} not found.");
+        // Actualizar solo lo necesario
+        model.Status = entity.Status;
+        model.StatusReason = entity.StatusReason;
+        
 
-            model.CustomerId = entity.CustomerId;
-            model.Status = entity.Status;
-            model.Street = entity.Street;
-            model.City = entity.City;
-            model.PostalCode = entity.PostalCode;
-
-            // Actualizar items: estrategia simple = borrar y recrear
-            model.Items.Clear();
-
-            foreach (var item in entity.Items)
-            {
-                var itemModel = new OrderItemModel
-                {
-                    Id = item.Id,
-                    OrderId = model.Id,
-                    PizzaId = item.PizzaId,
-                    PizzaName = item.PizzaName,
-                    Quantity = item.Quantity,
-                    UnitPrice = item.UnitPrice
-                };
-
-                model.Items.Add(itemModel);
-            }
-        }
-        catch (Exception ex)
-        {
-            throw new OrderRepositoryException("Error updating order", ex);
-        }
+        // No toques el Id, ni RowVersion, ni cosas raras
     }
+
 
     public override void Remove(Order entity)
     {
@@ -120,6 +95,7 @@ public class OrderRepository : BaseRepository<OrderModel, Order>, IOrderReposito
             Id = entity.Id,
             CustomerId = entity.CustomerId,
             Status = entity.Status,
+            StatusReason = entity.StatusReason,
             Street = entity.Street,
             City = entity.City,
             PostalCode = entity.PostalCode,

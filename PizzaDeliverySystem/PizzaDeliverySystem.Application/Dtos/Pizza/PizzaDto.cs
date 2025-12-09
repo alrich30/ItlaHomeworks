@@ -1,4 +1,4 @@
-﻿namespace PizzaDeliverySystem.Application.Dtos;
+﻿namespace PizzaDeliverySystem.Application.Dtos.Pizza;
 
 public class PizzaDto
 {

@@ -1,4 +1,4 @@
-﻿namespace PizzaDeliverySystem.Application.Dtos;
+﻿namespace PizzaDeliverySystem.Application.Dtos.Customer;
 
 public class UpdateCustomerRequest : CreateCustomerRequest
 {

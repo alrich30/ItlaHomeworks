@@ -15,6 +15,8 @@ namespace PizzaDeliverySystem.Infrastructure.Models
 
         public string Status { get; set; } = "Created";
 
+        public string? StatusReason { get; set; }
+
         // Dirección de entrega (podría ser distinta a la del cliente)
         public string Street { get; set; } = string.Empty;
         public string City { get; set; } = string.Empty;
