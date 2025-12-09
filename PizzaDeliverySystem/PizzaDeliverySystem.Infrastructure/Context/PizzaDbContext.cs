@@ -18,8 +18,6 @@ public class PizzaDbContext : DbContext, IUnitOfWork
     public DbSet<CustomerModel> Customers { get; set; } = null!;
     public DbSet<OrderModel> Orders { get; set; } = null!;
     public DbSet<OrderItemModel> OrderItems { get; set; } = null!;
-    public DbSet<UserModel> Users { get; set; } = null!;
-
 
     // IUnitOfWork
     public override Task<int> SaveChangesAsync(CancellationToken ct = default)
@@ -45,10 +43,5 @@ public class PizzaDbContext : DbContext, IUnitOfWork
             .HasOne(oi => oi.Order)
             .WithMany(o => o.Items)
             .HasForeignKey(oi => oi.OrderId);
-
-        modelBuilder.Entity<UserModel>()
-            .HasIndex(u => u.Email)
-            .IsUnique();
-
     }
 }
