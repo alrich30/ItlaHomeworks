@@ -20,7 +20,7 @@ public class PizzaDbContext : DbContext, IUnitOfWork
     public DbSet<OrderItemModel> OrderItems { get; set; } = null!;
 
     // IUnitOfWork
-    public Task<int> SaveChangesAsync(CancellationToken ct = default)
+    public override Task<int> SaveChangesAsync(CancellationToken ct = default)
         => base.SaveChangesAsync(ct);
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
