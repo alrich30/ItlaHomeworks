@@ -13,6 +13,17 @@ public class PizzaRepository : BaseRepository<PizzaModel, Pizza>, IPizzaReposito
     {
     }
 
+
+    public override async Task<List<Pizza>> GetAllAsync(CancellationToken ct = default)
+    {
+        var models = await _dbSet
+            .AsNoTracking()
+            .Include(p => p.Ingredients)  // si tienes relación muchos-a-muchos
+            .ToListAsync(ct);
+
+        return models.Select(MapToDomain).ToList();
+    }
+
     // ---------------- GetById ----------------
     public override async Task<Pizza?> GetByIdAsync(Guid id, CancellationToken ct = default)
     {
@@ -30,6 +41,8 @@ public class PizzaRepository : BaseRepository<PizzaModel, Pizza>, IPizzaReposito
             throw new PizzaRepositoryException($"Error getting pizza {id}", ex);
         }
     }
+
+
 
     // ---------------- Add ----------------
     public override async Task AddAsync(Pizza entity, CancellationToken ct = default)

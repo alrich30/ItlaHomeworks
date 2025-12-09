@@ -27,6 +27,20 @@ public class PizzaService : IPizzaService
         return pizza is null ? null : MapToDto(pizza);
     }
 
+    public async Task<IReadOnlyList<PizzaDto>> GetAllAsync(CancellationToken ct = default)
+    {
+        // Usa el nuevo método del repositorio
+        var pizzas = await _pizzaRepository.GetAllAsync(ct);
+
+        // Por si tu IRepository<T> devuelve List<T?>, filtramos nulls
+        var list = pizzas
+            .Where(p => p is not null)
+            .Select(p => MapToDto(p!))
+            .ToList();
+
+        return list;
+    }
+
     // ------------------ Crear ------------------
 
     public async Task<PizzaDto> CreateAsync(CreatePizzaRequest request, CancellationToken ct = default)

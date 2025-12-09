@@ -18,6 +18,15 @@ public class PizzaController : ControllerBase
         _pizzaService = pizzaService;
     }
 
+    // GET: api/pizza
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<PizzaDto>>> GetAll(CancellationToken ct)
+    {
+        var pizzas = await _pizzaService.GetAllAsync(ct);
+        return Ok(pizzas);
+    }
+
+
     // GET: api/pizza/{id}
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<PizzaDto>> GetById(Guid id, CancellationToken ct)
