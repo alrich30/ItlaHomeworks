@@ -31,7 +31,25 @@ builder.Services.AddScoped<IPizzaService, PizzaService>();
 builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 
+// 6) CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend",
+        policy =>
+        {
+            policy
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowCredentials()
+                .SetIsOriginAllowed(origin => true); // Permite todos los orígenes (útil en desarrollo)
+        });
+});
+
+
+
 var app = builder.Build();
+
+app.UseCors("AllowFrontend");
 
 // Middlewares básicos
 app.UseHttpsRedirection();
