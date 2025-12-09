@@ -1,6 +1,6 @@
 ﻿using System.Linq;
 using PizzaDeliverySystem.Application.Contract;
-using PizzaDeliverySystem.Application.Dtos;
+using PizzaDeliverySystem.Application.Dtos.Pizza;
 using PizzaDeliverySystem.Domain.Entities;
 using PizzaDeliverySystem.Domain.Core.Repository;
 //using PizzaDeliverySystem.Infrastructure.Interfaces;
@@ -11,11 +11,13 @@ namespace PizzaDeliverySystem.Application.Service;
 public class PizzaService : IPizzaService
 {
     private readonly IPizzaRepository _pizzaRepository;
+    private readonly IIngredientRepository _ingredientRepository;
     private readonly IUnitOfWork _unitOfWork;
 
-    public PizzaService(IPizzaRepository pizzaRepository, IUnitOfWork unitOfWork)
+    public PizzaService(IPizzaRepository pizzaRepository, IIngredientRepository ingredientRepository, IUnitOfWork unitOfWork)
     {
         _pizzaRepository = pizzaRepository;
+        _ingredientRepository = ingredientRepository;
         _unitOfWork = unitOfWork;
     }
 
@@ -25,6 +27,20 @@ public class PizzaService : IPizzaService
     {
         var pizza = await _pizzaRepository.GetByIdAsync(id, ct);
         return pizza is null ? null : MapToDto(pizza);
+    }
+
+    public async Task<IReadOnlyList<PizzaDto>> GetAllAsync(CancellationToken ct = default)
+    {
+        // Usa el nuevo método del repositorio
+        var pizzas = await _pizzaRepository.GetAllAsync(ct);
+
+        // Por si tu IRepository<T> devuelve List<T?>, filtramos nulls
+        var list = pizzas
+            .Where(p => p is not null)
+            .Select(p => MapToDto(p!))
+            .ToList();
+
+        return list;
     }
 
     // ------------------ Crear ------------------
@@ -63,9 +79,9 @@ public class PizzaService : IPizzaService
 
     // ------------------ Actualizar ------------------
 
-    public async Task<PizzaDto?> UpdateAsync(UpdatePizzaRequest request, CancellationToken ct = default)
+    public async Task<PizzaDto?> UpdateAsync(Guid id, UpdatePizzaRequest request, CancellationToken ct = default)
     {
-        var existing = await _pizzaRepository.GetByIdAsync(request.Id, ct);
+        var existing = await _pizzaRepository.GetByIdAsync(id, ct);
         if (existing is null)
             return null;
 
@@ -84,15 +100,24 @@ public class PizzaService : IPizzaService
         existing.SetBasePrice(request.BasePrice);
 
         // Reemplazar ingredientes por los del DTO (estrategia simple)
-        var currentIngredients = existing.Ingredients.ToList();
-        foreach (var ing in currentIngredients)
-            existing.RemoveIngredient(ing.Id);
+        //var currentIngredients = existing.Ingredients.ToList();
+        //foreach (var ing in currentIngredients)
+        //existing.RemoveIngredient(ing.Id);
 
-        foreach (var ingDto in request.Ingredients)
-        {
-            var ingredient = new Ingredient(ingDto.Name, ingDto.ExtraPrice);
-            existing.AddIngredient(ingredient);
-        }
+        //foreach (var ingDto in request.Ingredients)
+        //{
+        //var ingredient = new Ingredient(ingDto.Name, ingDto.ExtraPrice);
+        //existing.AddIngredient(ingredient);
+        //
+        //}
+
+
+        // 1. Obtener ingredientes desde repositorio por sus Ids
+        var ingredients = await _ingredientRepository
+            .GetByIdsAsync(request.IngredientIds, ct);
+
+        // 2. Reemplazar la colección de navegación de muchos-a-muchos
+        existing.SetIngredients(ingredients); // método de dominio que limpia y agrega
 
         _pizzaRepository.Update(existing);
         await _unitOfWork.SaveChangesAsync(ct);
