@@ -156,7 +156,6 @@ public class OrderService : IOrderService
             City = entity.City,
             PostalCode = entity.PostalCode,
             Status = entity.Status,
-            StatusReason = entity.StatusReason,
             Total = entity.Total,
             Items = entity.Items
                 .Select(i => new OrderItemDto

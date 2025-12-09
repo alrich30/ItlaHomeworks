@@ -9,7 +9,7 @@ using PizzaDeliverySystem.Domain.Core.Errors;
 
 namespace PizzaDeliverySystem.Domain.Entities;
 
-public class Ingredient : BaseEntity, IAggregateRoot
+public class Ingredient : BaseEntity
 {
     public string Name { get; private set; } = string.Empty;
     public decimal ExtraPrice { get; private set; }

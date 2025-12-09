@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using PizzaDeliverySystem.Application.Contract;
-using PizzaDeliverySystem.Application.Dtos.Customer;
+using PizzaDeliverySystem.Application.Dtos;
 
 namespace PizzaDeliverySystem.Controllers;
 

@@ -72,15 +72,6 @@ namespace PizzaDeliverySystem.Domain.Entities
             Touch();
         }
 
-        public void SetIngredients(IEnumerable<Ingredient> ingredients)
-        {
-            _ingredients.Clear();
-            foreach (var ing in ingredients)
-            {
-                _ingredients.Add(ing);
-            }
-        }
-
         public void AddIngredient(Ingredient ingredient)
         {
             if (ingredient is null)

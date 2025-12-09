@@ -3,7 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using PizzaDeliverySystem.Application.Contract;
-using PizzaDeliverySystem.Application.Dtos.Customer;
+using PizzaDeliverySystem.Application.Dtos;
 using PizzaDeliverySystem.Domain.Core.Repository;
 using PizzaDeliverySystem.Domain.Entities;
 

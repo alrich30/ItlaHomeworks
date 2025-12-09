@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using PizzaDeliverySystem.Application.Dtos.Customer;
+using PizzaDeliverySystem.Application.Dtos;
 
 namespace PizzaDeliverySystem.Application.Contract;
 
