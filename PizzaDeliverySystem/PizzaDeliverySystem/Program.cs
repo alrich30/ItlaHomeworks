@@ -13,7 +13,7 @@ builder.Services.AddControllers();
 // 2) DbContext (MySQL / MariaDB con Pomelo.EntityFrameworkCore.MySql)
 builder.Services.AddDbContext<PizzaDbContext>(options =>
     options.UseMySql(
-        builder.Configuration.GetConnectionString("PizzaDb"),
+        builder.Configuration.GetConnectionString("PizzaDbV2"),
         new MySqlServerVersion(new Version(8, 0, 36))
     )
 );
@@ -32,24 +32,24 @@ builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 
 // 6) CORS
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowFrontend",
-        policy =>
-        {
-            policy
-                .AllowAnyHeader()
-                .AllowAnyMethod()
-                .AllowCredentials()
-                .SetIsOriginAllowed(origin => true); // Permite todos los orígenes (útil en desarrollo)
-        });
-});
+//builder.Services.AddCors(options =>
+//{
+//    options.AddPolicy("AllowFrontend",
+//        policy =>
+//        {
+//            policy
+//                .AllowAnyHeader()
+//                .AllowAnyMethod()
+//                .AllowCredentials()
+//                .SetIsOriginAllowed(origin => true); // Permite todos los orígenes (útil en desarrollo)
+//        });
+//});
 
 
 
 var app = builder.Build();
 
-app.UseCors("AllowFrontend");
+//app.UseCors("AllowFrontend");
 
 // Middlewares básicos
 app.UseHttpsRedirection();
