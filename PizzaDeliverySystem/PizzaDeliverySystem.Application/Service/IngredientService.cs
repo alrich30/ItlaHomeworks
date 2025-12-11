@@ -1,5 +1,5 @@
 ﻿using PizzaDeliverySystem.Application.Contract;
-using PizzaDeliverySystem.Application.Dtos.Ingredient;
+using PizzaDeliverySystem.Application.Dtos;
 using PizzaDeliverySystem.Domain.Core.Repository;
 using PizzaDeliverySystem.Domain.Entities;
 
@@ -23,6 +23,13 @@ public class IngredientService : IIngredientService
     {
         var ingredient = await _ingredientRepository.GetByIdAsync(id, ct);
         return ingredient is null ? null : MapToDto(ingredient);
+    }
+
+        // -------- Get all --------
+    public async Task<IReadOnlyList<IngredientDto>> GetAllAsync(CancellationToken ct = default)
+    {
+        var ingredients = await _ingredientRepository.GetAllAsync(ct);
+        return ingredients.Select(MapToDto).ToList();
     }
 
 

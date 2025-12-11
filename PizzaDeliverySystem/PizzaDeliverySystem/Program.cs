@@ -4,13 +4,16 @@ using PizzaDeliverySystem.Application.Service;
 using PizzaDeliverySystem.Domain.Core.Repository;
 using PizzaDeliverySystem.Infrastructure.Context;
 using PizzaDeliverySystem.Infrastructure.Repositories;
-using PizzaDeliverySystem.Infrastructure.Repository;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 var jwtKey = builder.Configuration["Jwt:Key"];
+if (string.IsNullOrEmpty(jwtKey))
+{
+    throw new InvalidOperationException("JWT Key no está configurada en appsettings.json");
+}
 var jwtIssuer = builder.Configuration["Jwt:Issuer"];
 var jwtAudience = builder.Configuration["Jwt:Audience"];
 
@@ -24,11 +27,13 @@ builder.Services
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = jwtIssuer,
+           ValidIssuer = jwtIssuer,
             ValidAudience = jwtAudience,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey!))
         };
     });
+
+
 
 builder.Services.AddAuthorization();
 
@@ -63,24 +68,20 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 
 
 // 6) CORS
-//builder.Services.AddCors(options =>
-//{
-//    options.AddPolicy("AllowFrontend",
-//        policy =>
-//        {
-//            policy
-//                .AllowAnyHeader()
-//                .AllowAnyMethod()
-//                .AllowCredentials()
-//                .SetIsOriginAllowed(origin => true); // Permite todos los orígenes (útil en desarrollo)
-//        });
-//});
-
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins("http://localhost:5500", "http://127.0.0.1:5500")
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
 
 
 var app = builder.Build();
 
-//app.UseCors("AllowFrontend");
+app.UseCors("AllowFrontend");
 
 // Middlewares básicos
 app.UseHttpsRedirection();
