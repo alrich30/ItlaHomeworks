@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pizza Delivery - Test</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .loading { background-color: #fff3cd; color: #856404; }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        #pizzaList {
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .pizza-item {
+            padding: 10px;
+            margin: 5px 0;
+            background-color: #f8f9fa;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🍕 Pizza Delivery</h1>
+    
+    <!-- Estado de conexión -->
+    <div id="connectionStatus"></div>
+    
+    <!-- Botones de prueba -->
+    <div>
+    <!--<button onclick="testConnection()">🔍 Probar Conexión</button>-->    
+        <button onclick="loadPizzas()">📋 Cargar Pizzas</button>
+        <button onclick="showCreatePizzaForm()">➕ Crear Nueva Pizza</button>
+    </div>
+    
+    <!-- Resultados -->
+    <div id="pizzaList"></div>
+
+    <script src="api.js"></script>
+    <script src="app.js"></script>
+    <script src="config.js"></script>
+</body>
+</html>
