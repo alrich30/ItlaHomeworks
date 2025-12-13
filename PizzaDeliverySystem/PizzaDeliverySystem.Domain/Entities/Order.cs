@@ -14,8 +14,6 @@ namespace PizzaDeliverySystem.Domain.Entities
 
         public Guid CustomerId { get; private set; }
         public string Status { get; private set; } = "Created";
-
-        // Address flattened (no ValueObject)
         public string Street { get; private set; } = string.Empty;
         public string City { get; private set; } = string.Empty;
         public string PostalCode { get; private set; } = string.Empty;

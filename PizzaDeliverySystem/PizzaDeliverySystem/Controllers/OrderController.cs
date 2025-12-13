@@ -19,6 +19,14 @@ public class OrderController : ControllerBase
         _orderService = orderService;
     }
 
+    // GET: api/order
+    [HttpGet]
+    public async Task<ActionResult<List<OrderDto>>> GetAll(CancellationToken ct)
+    {
+        var orders = await _orderService.GetAllAsync(ct);
+        return Ok(orders);
+    }
+
     // GET: api/order/{id}
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<OrderDto>> GetById(Guid id, CancellationToken ct)

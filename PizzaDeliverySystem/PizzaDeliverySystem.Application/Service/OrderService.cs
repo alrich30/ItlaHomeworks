@@ -29,7 +29,15 @@ public class OrderService : IOrderService
         _unitOfWork = unitOfWork;
     }
 
+
     // ------------------ Consultar ------------------
+
+    // ✅ NUEVO: Obtener todas las órdenes
+    public async Task<List<OrderDto>> GetAllAsync(CancellationToken ct = default)
+    {
+        var orders = await _orderRepository.GetAllAsync(ct);
+        return orders.Select(MapToDto).ToList();
+    }
 
     public async Task<OrderDto?> GetByIdAsync(Guid id, CancellationToken ct = default)
     {

@@ -8,6 +8,7 @@ namespace PizzaDeliverySystem.Application.Contract;
 
 public interface IOrderService
 {
+    Task<List<OrderDto>> GetAllAsync(CancellationToken ct = default);
     Task<OrderDto?> GetByIdAsync(Guid id, CancellationToken ct = default);
 
     Task<OrderDto> CreateAsync(CreateOrderRequest request, CancellationToken ct = default);

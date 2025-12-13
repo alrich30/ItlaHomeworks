@@ -13,6 +13,20 @@ public class OrderRepository : BaseRepository<OrderModel, Order>, IOrderReposito
     {
     }
 
+    // ✅ Override GetAllAsync para incluir Items y Customer
+    public override async Task<List<Order>> GetAllAsync(CancellationToken ct = default)
+    {
+        var models = await _dbSet
+            .Include(o => o.Items)      // ← Incluir relaciones
+            .Include(o => o.Customer)   // ← Incluir relaciones
+            .AsNoTracking()
+            //.OrderByDescending(o => o.OrderDate) // ← Más recientes primero
+            .ToListAsync(ct);
+
+        return models
+            .Select(MapToDomain)
+            .ToList();
+    }
     public override async Task<Order?> GetByIdAsync(Guid id, CancellationToken ct = default)
     {
         try
