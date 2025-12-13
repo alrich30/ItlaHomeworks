@@ -56,6 +56,9 @@ public class AuthService : IAuthService
         if (user is null)
             throw new InvalidOperationException("Invalid credentials.");
 
+        if (!user.IsActive)
+            throw new InvalidOperationException("Your account has been deactivated.");
+
         var valid = BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash);
         if (!valid)
             throw new InvalidOperationException("Invalid credentials.");
