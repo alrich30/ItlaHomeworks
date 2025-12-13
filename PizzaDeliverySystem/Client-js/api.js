@@ -1,3 +1,8 @@
+
+
+
+
+
 // Obtener todas las pizzas
 async function fetchPizzas() {
     try {
@@ -17,24 +22,7 @@ async function fetchPizzas() {
     }
 }
 
-// Obtener todos los ingredientes disponibles
-async function fetchIngredients() {
-    try {
-        console.log('🚀 GET:', `${API_URL}/ingredient`);
-        const response = await fetch(`${API_URL}/ingredient`);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        console.log('✅ Ingredientes recibidos:', data);
-        return data;
-    } catch (error) {
-        console.error('❌ Error obteniendo ingredientes:', error);
-        throw error;
-    }
-}
+
 
 // Crear pizza
 async function createPizza(pizzaData) {
@@ -96,6 +84,163 @@ async function deletePizza(id) {
 
     } catch (error) {
         console.error('❌ Error eliminando pizza:', error);
+        throw error;
+    }
+}
+
+// ==================== INGREDIENTES ====================
+
+
+// Obtener todos los ingredientes disponibles
+async function fetchIngredients() {
+    try {
+        console.log('🚀 GET:', `${API_URL}/ingredient`);
+        const response = await fetch(`${API_URL}/ingredient`);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('✅ Ingredientes recibidos:', data);
+        return data;
+    } catch (error) {
+        console.error('❌ Error obteniendo ingredientes:', error);
+        throw error;
+    }
+}
+
+// Obtener todos los ingredientes
+async function fetchIngredients() {
+   try {
+        console.log('🚀 GET:', `${API_URL}/ingredient`);
+        const response = await fetch(`${API_URL}/ingredient`, {
+            headers: getAuthHeaders()
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('✅ Ingredientes recibidos:', data);
+        return data;
+    } catch (error) {
+        console.error('❌ Error obteniendo ingredientes:', error);
+        throw error;
+    }
+}
+
+// Obtener ingrediente por ID
+async function getIngredientById(id) {
+    try {
+        console.log('🚀 GET:', `${API_URL}/ingredient/${id}`);
+        const response = await fetch(`${API_URL}/ingredient/${id}`, {
+            headers: getAuthHeaders()
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('✅ Ingrediente recibido:', data);
+        return data;
+    } catch (error) {
+        console.error('❌ Error obteniendo ingrediente:', error);
+        throw error;
+    }
+}
+
+// Crear ingrediente
+async function createIngredient(ingredientData) {
+    try {
+        console.log('🚀 POST:', `${API_URL}/ingredient`, ingredientData);
+        
+        const response = await fetch(`${API_URL}/ingredient`, {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify(ingredientData)
+        });
+        
+        console.log('📡 Respuesta:', response.status);
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Error del servidor:', errorText);
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('✅ Ingrediente creado:', data);
+        return data;
+    } catch (error) {
+        console.error('❌ Error creando ingrediente:', error);
+        throw error;
+    }
+}
+
+// Actualizar ingrediente
+async function updateIngredient(id, ingredientData) {
+    try {
+        console.log('🚀 PUT:', `${API_URL}/ingredient/${id}`, ingredientData);
+        
+        const response = await fetch(`${API_URL}/ingredient/${id}`, {
+            method: 'PUT',
+            headers: getAuthHeaders(),
+            body: JSON.stringify(ingredientData)
+        });
+        
+        console.log('📡 Respuesta:', response.status);
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Error del servidor:', errorText);
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        // Algunos endpoints PUT retornan 204 No Content
+        if (response.status === 204) {
+            console.log('✅ Ingrediente actualizado (204 No Content)');
+            return { success: true };
+        }
+        
+        const data = await response.json();
+        console.log('✅ Ingrediente actualizado:', data);
+        return data;
+    } catch (error) {
+        console.error('❌ Error actualizando ingrediente:', error);
+        throw error;
+    }
+}
+
+// Eliminar ingrediente
+async function deleteIngredient(id) {
+    try {
+        console.log('🗑️ DELETE:', `${API_URL}/ingredient/${id}`);
+        
+        const response = await fetch(`${API_URL}/ingredient/${id}`, {
+            method: 'DELETE',
+            headers: getAuthHeaders()
+        });
+
+        console.log('📡 Respuesta:', response.status);
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        if (response.status === 204) {
+            console.log('✅ Ingrediente eliminado (204 No Content)');
+            return { success: true };
+        }
+
+        const data = await response.json();
+        console.log('✅ Ingrediente eliminado:', data);
+        return data;
+
+    } catch (error) {
+        console.error('❌ Error eliminando ingrediente:', error);
         throw error;
     }
 }

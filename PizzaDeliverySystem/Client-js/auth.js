@@ -1,4 +1,14 @@
-// auth.js
+// ==================== AUTENTICACIÓN ====================
+
+// Construir headers con autenticación
+function getAuthHeaders() {
+    const token = getToken();
+    return {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })
+    };
+}
+
 
 // Login de usuario
 async function login(email, password) {
