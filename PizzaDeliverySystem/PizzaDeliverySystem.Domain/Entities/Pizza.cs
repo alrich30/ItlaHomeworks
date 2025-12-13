@@ -93,6 +93,15 @@ namespace PizzaDeliverySystem.Domain.Entities
             Touch();
         }
 
+        public void SetIngredients(IEnumerable<Ingredient> ingredients)
+        {
+            _ingredients.Clear();
+            foreach (var ing in ingredients)
+            {
+                _ingredients.Add(ing);
+            }
+        }
+
         public decimal GetTotalPrice()
             => BasePrice + _ingredients.Sum(i => i.ExtraPrice);
     }

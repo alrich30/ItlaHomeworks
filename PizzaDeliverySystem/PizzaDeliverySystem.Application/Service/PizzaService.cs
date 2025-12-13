@@ -11,11 +11,14 @@ namespace PizzaDeliverySystem.Application.Service;
 public class PizzaService : IPizzaService
 {
     private readonly IPizzaRepository _pizzaRepository;
+    private readonly IIngredientRepository _ingredientRepository;
     private readonly IUnitOfWork _unitOfWork;
 
-    public PizzaService(IPizzaRepository pizzaRepository, IUnitOfWork unitOfWork)
+
+    public PizzaService(IPizzaRepository pizzaRepository, IIngredientRepository ingredientRepository, IUnitOfWork unitOfWork)
     {
         _pizzaRepository = pizzaRepository;
+        _ingredientRepository = ingredientRepository;
         _unitOfWork = unitOfWork;
     }
 
@@ -77,9 +80,10 @@ public class PizzaService : IPizzaService
 
     // ------------------ Actualizar ------------------
 
-    public async Task<PizzaDto?> UpdateAsync(UpdatePizzaRequest request, CancellationToken ct = default)
+    public async Task<PizzaDto?> UpdateAsync(Guid id , UpdatePizzaRequest request, CancellationToken ct = default)
     {
-        var existing = await _pizzaRepository.GetByIdAsync(request.Id, ct);
+        var existing = await _pizzaRepository.GetByIdAsync(id , ct);
+        //var existing = await _pizzaRepository.GetByIdAsync(request.Id, ct);
         if (existing is null)
             return null;
 
@@ -97,16 +101,13 @@ public class PizzaService : IPizzaService
         existing.SetSize(request.Size);
         existing.SetBasePrice(request.BasePrice);
 
-        // Reemplazar ingredientes por los del DTO (estrategia simple)
-        var currentIngredients = existing.Ingredients.ToList();
-        foreach (var ing in currentIngredients)
-            existing.RemoveIngredient(ing.Id);
+        // 1. Obtener ingredientes desde repositorio por sus Ids
+        var ingredients = await _ingredientRepository
+            .GetByIdsAsync(request.IngredientIds, ct);
 
-        foreach (var ingDto in request.Ingredients)
-        {
-            var ingredient = new Ingredient(ingDto.Name, ingDto.ExtraPrice);
-            existing.AddIngredient(ingredient);
-        }
+
+        // 2. Reemplazar la colección de navegación de muchos-a-muchos
+        existing.SetIngredients(ingredients); // método de dominio que limpia y agrega
 
         _pizzaRepository.Update(existing);
         await _unitOfWork.SaveChangesAsync(ct);

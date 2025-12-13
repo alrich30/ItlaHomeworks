@@ -14,7 +14,7 @@ public interface IPizzaService
 
     Task<PizzaDto> CreateAsync(CreatePizzaRequest request, CancellationToken ct = default);
 
-    Task<PizzaDto?> UpdateAsync(UpdatePizzaRequest request, CancellationToken ct = default);
+    Task<PizzaDto?> UpdateAsync(Guid id, UpdatePizzaRequest request, CancellationToken ct = default);
 
     Task<bool> DeleteAsync(Guid id, CancellationToken ct = default);
 }

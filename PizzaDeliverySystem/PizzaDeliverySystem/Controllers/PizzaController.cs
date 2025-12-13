@@ -59,13 +59,14 @@ public class PizzaController : ControllerBase
     [HttpPut("{id:guid}")]
     public async Task<ActionResult<PizzaDto>> Update(Guid id, [FromBody] UpdatePizzaRequest request, CancellationToken ct)
     {
-        if (id != request.Id)
-            return BadRequest("Route id and body id must match.");
+        //if (id != request.Id)
+            //return BadRequest("Route id and body id must match.");
 
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        var updated = await _pizzaService.UpdateAsync(request, ct);
+        var updated = await _pizzaService.UpdateAsync(id, request, ct);
+
         if (updated is null)
             return NotFound();
 
