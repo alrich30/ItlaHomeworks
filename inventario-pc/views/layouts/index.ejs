@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Inventario de Artículos</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+  <div class="container mt-4">
+    <h1 class="mb-4">📦 Lista de Artículos</h1>
+
+    <div class="text-end mb-3">
+      <a href="/articulos/nuevo" class="btn btn-primary">➕ Agregar nuevo artículo</a>
+    </div>
+
+    <table class="table table-bordered table-hover">
+      <thead class="table-dark">
+        <tr>
+          <th>Imagen</th>
+          <th>Código</th>
+          <th>Nombre</th>
+          <th>Descripción</th>
+          <th>Cantidad</th>
+          <th>Precio</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% articulos.forEach(articulo => { %>
+          <tr>
+            <td>
+              <% if (articulo.foto) { %>
+                <img src="/uploads/<%= articulo.foto %>" alt="<%= articulo.nombre %>" width="80" height="60" style="object-fit: cover;">
+              <% } else { %>
+                <span class="text-muted">Sin imagen</span>
+              <% } %>
+            </td>
+            <td><%= articulo.codigo %></td>
+            <td><%= articulo.nombre %></td>
+            <td><%= articulo.descripcion %></td>
+            <td><%= articulo.cantidad %></td>
+            <td>$<%= articulo.precio %></td>
+            <td>
+              <a href="/articulos/<%= articulo._id %>/editar" class="btn btn-warning btn-sm">Editar</a>
+              <form action="/articulos/<%= articulo._id %>/eliminar" method="POST" style="display: inline;">
+                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de eliminar este artículo?')">Eliminar</button>
+              </form>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+
+</body>
+</html>
