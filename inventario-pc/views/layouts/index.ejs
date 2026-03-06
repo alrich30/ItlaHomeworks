@@ -4,31 +4,96 @@
   <meta charset="UTF-8">
   <title>Inventario de Artículos</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    th.sortable {
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+    }
+    th.sortable:hover { background-color: #3a3a3a; }
+    .sort-icon {
+      margin-left: 5px;
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.45);
+    }
+    th.sortable.asc  .sort-icon { color: #fff; }
+    th.sortable.desc .sort-icon { color: #fff; }
+    tr.stock-critico { background-color: #ffe0e0 !important; }
+    tr.stock-critico:hover { background-color: #ffcaca !important; }
+    .badge-stock { font-size: 0.7rem; margin-left: 5px; vertical-align: middle; }
+  </style>
 </head>
 <body class="bg-light">
-
   <div class="container mt-4">
-    <h1 class="mb-4">📦 Lista de Artículos</h1>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h1 class="mb-0">&#128230; Lista de Artículos</h1>
+      <!-- SCRUM-46: Botón cerrar sesión -->
+      <a href="/logout" class="btn btn-outline-danger btn-sm"
+         onclick="return confirm('¿Estás seguro que deseas cerrar sesión?')">
+        &#128274; Cerrar sesión
+      </a>
+    </div>
 
-    <div class="text-end mb-3">
-      <a href="/articulos/nuevo" class="btn btn-primary">➕ Agregar nuevo artículo</a>
+    <!-- SCRUM-41: Alerta de éxito -->
+    <% if (mensaje === 'creado') { %>
+      <div class="alert alert-success alert-dismissible fade show" role="alert" id="alertaExito">
+        &#10003; El artículo fue <strong>creado</strong> exitosamente.
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    <% } else if (mensaje === 'actualizado') { %>
+      <div class="alert alert-success alert-dismissible fade show" role="alert" id="alertaExito">
+        &#10003; El artículo fue <strong>actualizado</strong> exitosamente.
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    <% } %>
+
+    <div class="row mb-3 align-items-center">
+      <div class="col-md-6">
+        <input
+          type="text"
+          id="campoBusqueda"
+          class="form-control"
+          placeholder="Buscar por nombre o código..."
+          oninput="filtrarYOrdenar()"
+        >
+      </div>
+      <div class="col-md-6 text-end">
+        <a href="/articulos/nuevo" class="btn btn-primary">&#10133; Agregar nuevo artículo</a>
+      </div>
+    </div>
+
+    <div class="mb-2 d-flex gap-2 align-items-center">
+      <span class="badge bg-secondary fs-6">
+        Total de artículos: <span id="contadorArticulos">0</span>
+      </span>
+      <span class="badge bg-danger fs-6" id="contadorBajoStock" style="display:none!important">
+        &#9888; Stock bajo: <span id="numBajoStock">0</span>
+      </span>
+    </div>
+
+    <div id="sinResultados" class="alert alert-warning d-none" role="alert">
+      No se encontraron artículos que coincidan con la búsqueda.
     </div>
 
     <table class="table table-bordered table-hover">
       <thead class="table-dark">
         <tr>
           <th>Imagen</th>
-          <th>Código</th>
+          <th class="sortable" data-col="1" onclick="cambiarOrden(this)">
+            Código <span class="sort-icon">&#8645;</span>
+          </th>
           <th>Nombre</th>
           <th>Descripción</th>
           <th>Cantidad</th>
-          <th>Precio</th>
+          <th class="sortable" data-col="5" onclick="cambiarOrden(this)">
+            Precio <span class="sort-icon">&#8645;</span>
+          </th>
           <th>Acciones</th>
         </tr>
       </thead>
-      <tbody>
+      <tbody id="tablaArticulos">
         <% articulos.forEach(articulo => { %>
-          <tr>
+          <tr class="<%= articulo.cantidad < 5 ? 'stock-critico' : '' %>">
             <td>
               <% if (articulo.foto) { %>
                 <img src="/uploads/<%= articulo.foto %>" alt="<%= articulo.nombre %>" width="80" height="60" style="object-fit: cover;">
@@ -37,10 +102,15 @@
               <% } %>
             </td>
             <td><%= articulo.codigo %></td>
-            <td><%= articulo.nombre %></td>
+            <td>
+              <%= articulo.nombre %>
+              <% if (articulo.cantidad < 5) { %>
+                <span class="badge bg-danger badge-stock">&#9888; Stock bajo</span>
+              <% } %>
+            </td>
             <td><%= articulo.descripcion %></td>
             <td><%= articulo.cantidad %></td>
-            <td>$<%= articulo.precio %></td>
+            <td data-precio="<%= articulo.precio %>">$<%= articulo.precio %></td>
             <td>
               <a href="/articulos/<%= articulo._id %>/editar" class="btn btn-warning btn-sm">Editar</a>
               <form action="/articulos/<%= articulo._id %>/eliminar" method="POST" style="display: inline;">
@@ -52,6 +122,101 @@
       </tbody>
     </table>
   </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    let ordenActual = { col: null, dir: null };
+    const ICON_NEUTRAL = '&#8645;';
+    const ICON_ASC     = '&#8593;';
+    const ICON_DESC    = '&#8595;';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const todasFilas = document.querySelectorAll('#tablaArticulos tr');
+      document.getElementById('contadorArticulos').textContent = todasFilas.length;
+      const bajosStock = Array.from(todasFilas).filter(f => f.classList.contains('stock-critico')).length;
+      actualizarContadorStock(bajosStock);
+
+      // SCRUM-41: auto-cerrar la alerta después de 4 segundos
+      const alerta = document.getElementById('alertaExito');
+      if (alerta) {
+        setTimeout(() => {
+          alerta.classList.remove('show');
+          alerta.classList.add('fade');
+          setTimeout(() => alerta.remove(), 500);
+        }, 4000);
+      }
+    });
+
+    function actualizarContadorStock(cantidad) {
+      const badge = document.getElementById('contadorBajoStock');
+      document.getElementById('numBajoStock').textContent = cantidad;
+      badge.style.display = cantidad > 0 ? 'inline' : 'none';
+    }
+
+    function cambiarOrden(th) {
+      const col = parseInt(th.dataset.col);
+      document.querySelectorAll('th.sortable').forEach(h => {
+        if (h !== th) {
+          h.classList.remove('asc', 'desc');
+          h.querySelector('.sort-icon').innerHTML = ICON_NEUTRAL;
+        }
+      });
+      if (ordenActual.col === col) {
+        ordenActual.dir = ordenActual.dir === 'asc' ? 'desc' : 'asc';
+      } else {
+        ordenActual.col = col;
+        ordenActual.dir = 'asc';
+      }
+      th.classList.remove('asc', 'desc');
+      th.classList.add(ordenActual.dir);
+      th.querySelector('.sort-icon').innerHTML = ordenActual.dir === 'asc' ? ICON_ASC : ICON_DESC;
+      filtrarYOrdenar();
+    }
+
+    function filtrarYOrdenar() {
+      const texto = document.getElementById('campoBusqueda').value.toLowerCase().trim();
+      const tbody = document.getElementById('tablaArticulos');
+      let filas = Array.from(tbody.querySelectorAll('tr'));
+
+      filas = filas.filter(fila => {
+        const codigo = fila.cells[1].textContent.toLowerCase();
+        const nombre = fila.cells[2].textContent.toLowerCase();
+        const coincide = codigo.includes(texto) || nombre.includes(texto);
+        fila.classList.toggle('d-none', !coincide);
+        return coincide;
+      });
+
+      document.getElementById('contadorArticulos').textContent = filas.length;
+      const bajosVisibles = filas.filter(f => f.classList.contains('stock-critico')).length;
+      actualizarContadorStock(bajosVisibles);
+
+      if (ordenActual.col !== null) {
+        filas.sort((a, b) => {
+          if (ordenActual.col === 5) {
+            const valA = parseFloat(a.cells[5].dataset.precio) || 0;
+            const valB = parseFloat(b.cells[5].dataset.precio) || 0;
+            return ordenActual.dir === 'asc' ? valA - valB : valB - valA;
+          } else {
+            const valA = a.cells[1].textContent.trim().toUpperCase();
+            const valB = b.cells[1].textContent.trim().toUpperCase();
+            const letraA = valA.charAt(0);
+            const letraB = valB.charAt(0);
+            const numA = parseInt(valA.slice(1)) || 0;
+            const numB = parseInt(valB.slice(1)) || 0;
+            if (letraA !== letraB) {
+              return ordenActual.dir === 'asc'
+                ? letraA.localeCompare(letraB)
+                : letraB.localeCompare(letraA);
+            }
+            return ordenActual.dir === 'asc' ? numA - numB : numB - numA;
+          }
+        });
+        filas.forEach(fila => tbody.appendChild(fila));
+      }
+
+      document.getElementById('sinResultados').classList.toggle('d-none', filas.length > 0);
+    }
+  </script>
 
 </body>
 </html>

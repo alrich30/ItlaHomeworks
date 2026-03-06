@@ -1,4 +1,4 @@
-// backend/models/Articulo.js
+// models/articulo.js
 const mongoose = require('mongoose');
 
 const ArticuloSchema = new mongoose.Schema({
